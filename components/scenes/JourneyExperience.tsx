@@ -175,10 +175,24 @@ export default function JourneyExperience() {
     });
   }, []);
 
-  const startJourney = () => {
-    window.dispatchEvent(
-      new Event("project-highway:start-music")
-    );
+  useEffect(() => {
+    if (journeyStarted) {
+      return;
+    }
+  
+    const autoWelcomeTimer = window.setTimeout(() => {
+      goToWelcome();
+    }, 8000);
+  
+    return () => {
+      window.clearTimeout(autoWelcomeTimer);
+    };
+  }, [journeyStarted, goToWelcome]);
+  
+    const startJourney = () => {
+      window.dispatchEvent(
+        new Event("project-highway:start-music")
+      );
 
     setShowWelcome(false);
     setActiveScene(0);
