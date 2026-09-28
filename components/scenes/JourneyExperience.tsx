@@ -640,8 +640,9 @@ export default function JourneyExperience() {
 
           .journey-sequenced-layer {
             transition:
-              opacity 1.8s ease,
+              opacity 1.25s ease-in-out,
               transform 9s linear;
+            will-change: opacity, transform;
           }
 
           .journey-sequenced-copy {
