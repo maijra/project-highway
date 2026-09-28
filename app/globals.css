@@ -1171,7 +1171,7 @@ section {
 
   /* Pull Leadership slightly over the end of Welcome
      so there is no hard horizontal seam. */
-  margin-top: -120px;
+  margin-top: 0;
 
   padding:
     270px
