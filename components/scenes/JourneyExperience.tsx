@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 
 type JourneyScene = {
   image: string;
@@ -138,31 +137,42 @@ const JOURNEY_SCENES: JourneyScene[] = [
   },
 ];
 
-const walkers = Array.from(
-  { length: 28 },
-  (_, index) => ({
-    id: index,
-    imageNumber: (index % 3) + 1,
-    left: 30 + ((index * 7) % 39),
-    duration: 64 + (index % 7) * 4,
-    delay: -(index * 3.1),
-    scale: 0.78 + (index % 5) * 0.05,
-  })
-);
-
 export default function JourneyExperience() {
   const stageRef = useRef<HTMLDivElement>(null);
 
-  const [journeyStarted, setJourneyStarted] = useState(false);
-  const [activeScene, setActiveScene] = useState(-1);
-  const [showWelcome, setShowWelcome] = useState(false);
-  
-  const goToWelcome = useCallback(() => {
-    setJourneyStarted(true);
-    setActiveScene(-1);
-    setShowWelcome(true);
+  const [journeyStarted, setJourneyStarted] =
+    useState(false);
 
-    requestAnimationFrame(() => {
+  const [activeScene, setActiveScene] =
+    useState(-1);
+
+  /*
+   * Welcome is no longer rendered inside JourneyExperience.
+   * It is the permanent #welcome section in page.tsx.
+   */
+  const goToWelcome = useCallback(() => {
+    setJourneyStarted(false);
+    setActiveScene(-1);
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("welcome")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    });
+  }, []);
+
+  const startJourney = useCallback(() => {
+    window.dispatchEvent(
+      new Event("project-highway:start-music")
+    );
+
+    setActiveScene(0);
+    setJourneyStarted(true);
+
+    window.requestAnimationFrame(() => {
       stageRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -170,37 +180,10 @@ export default function JourneyExperience() {
     });
   }, []);
 
-  useEffect(() => {
-    if (journeyStarted) {
-      return;
-    }
-  
-    const autoWelcomeTimer = window.setTimeout(() => {
-      goToWelcome();
-    }, 8000);
-  
-    return () => {
-      window.clearTimeout(autoWelcomeTimer);
-    };
-  }, [journeyStarted, goToWelcome]);
-  
-    const startJourney = () => {
-      window.dispatchEvent(
-        new Event("project-highway:start-music")
-      );
-
-    setShowWelcome(false);
-    setActiveScene(0);
-    setJourneyStarted(true);
-
-    requestAnimationFrame(() => {
-      stageRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  };
-
+  /*
+   * Navbar / other components can request the Welcome
+   * section through this existing custom event.
+   */
   useEffect(() => {
     const handleWelcomeRequest = () => {
       goToWelcome();
@@ -219,12 +202,11 @@ export default function JourneyExperience() {
     };
   }, [goToWelcome]);
 
+  /*
+   * Automated Journey sequence.
+   */
   useEffect(() => {
-    if (
-      !journeyStarted ||
-      showWelcome ||
-      activeScene < 0
-    ) {
+    if (!journeyStarted || activeScene < 0) {
       return;
     }
 
@@ -258,17 +240,7 @@ export default function JourneyExperience() {
     activeScene,
     goToWelcome,
     journeyStarted,
-    showWelcome,
   ]);
-
-  const goToLiveSection = () => {
-    document
-      .getElementById("live")
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-  };
 
   return (
     <section
@@ -279,6 +251,10 @@ export default function JourneyExperience() {
         ref={stageRef}
         className="journey-stage"
       >
+        {/* =====================================
+            JOURNEY ENTRY
+            ===================================== */}
+
         {!journeyStarted && (
           <div className="journey-entry-screen">
             <div className="journey-entry-content">
@@ -314,12 +290,16 @@ export default function JourneyExperience() {
           </div>
         )}
 
-        {journeyStarted && !showWelcome && (
+        {/* =====================================
+            SKIP JOURNEY
+            ===================================== */}
+
+        {journeyStarted && (
           <button
             type="button"
             className="journey-skip-button"
             onClick={goToWelcome}
-            aria-label="Skip the journey and go to the welcome screen"
+            aria-label="Skip the journey and go to the welcome section"
           >
             <span>Skip Journey</span>
 
@@ -331,6 +311,10 @@ export default function JourneyExperience() {
             </span>
           </button>
         )}
+
+        {/* =====================================
+            JOURNEY BACKGROUNDS
+            ===================================== */}
 
         {JOURNEY_SCENES.map((scene, index) => {
           const isActive =
@@ -347,15 +331,18 @@ export default function JourneyExperience() {
               style={{
                 backgroundImage:
                   `url('${scene.image}')`,
+
                 opacity:
                   isActive || isPrevious
                     ? 1
                     : 0,
+
                 zIndex: isActive
                   ? 2
                   : isPrevious
                     ? 1
                     : 0,
+
                 transform: isActive
                   ? "scale(1.045)"
                   : "scale(1.015)",
@@ -364,49 +351,12 @@ export default function JourneyExperience() {
           );
         })}
 
-        <div
-          className="journey-layer journey-welcome-transition journey-sequenced-layer"
-          style={{
-            backgroundImage:
-              "url('/scenery/welcome-highway-clean.png')",
-            opacity: showWelcome ? 1 : 0,
-            transform: showWelcome
-              ? "scale(1.04)"
-              : "scale(1.01)",
-          }}
-        />
-
         <div className="journey-overlay" />
         <div className="journey-glow" />
 
-        <div
-          className="journey-spirit-layer"
-          aria-hidden="true"
-          style={{
-            opacity: showWelcome ? 0.72 : 0,
-            transition: "opacity 2.4s ease",
-          }}
-        >
-          {walkers.map((walker) => (
-            <Image
-              key={walker.id}
-              src={`/scenery/spirit-walker-${walker.imageNumber}.png`}
-              alt=""
-              width={225}
-              height={360}
-              className="procession-spirit"
-              style={{
-                left: `${walker.left}%`,
-                animationDuration:
-                  `${walker.duration}s`,
-                animationDelay:
-                  `${walker.delay}s`,
-                transform:
-                  `translateX(-50%) scale(${walker.scale})`,
-              }}
-            />
-          ))}
-        </div>
+        {/* =====================================
+            JOURNEY COPY
+            ===================================== */}
 
         {JOURNEY_SCENES.map(
           (scene, index) => {
@@ -415,7 +365,7 @@ export default function JourneyExperience() {
             }
 
             const showSceneText =
-              !showWelcome &&
+              journeyStarted &&
               activeScene === index;
 
             return (
@@ -425,10 +375,12 @@ export default function JourneyExperience() {
                 style={{
                   opacity:
                     showSceneText ? 1 : 0,
+
                   visibility:
                     showSceneText
                       ? "visible"
                       : "hidden",
+
                   transform:
                     showSceneText
                       ? "translateY(0)"
@@ -461,93 +413,24 @@ export default function JourneyExperience() {
           }
         )}
 
-        <div
-          className="journey-welcome-copy"
-          style={{
-            opacity: showWelcome ? 1 : 0,
-            transform: showWelcome
-              ? "translateY(0)"
-              : "translateY(34px)",
-            transition:
-              "opacity 1.8s ease 0.45s, transform 1.8s ease 0.45s",
-          }}
-        >
-          <p className="welcome-eyebrow">
-            Welcome To
-          </p>
-
-          <h2 className="welcome-title">
-            Isaiah 35:8 Ministries
-          </h2>
-
-          <p className="welcome-scripture">
-            “And a highway shall be there, and a
-            way, and it shall be called The way
-            of holiness.”
-          </p>
-
-          <p className="welcome-reference">
-            Isaiah 35:8
-          </p>
-
-          <p className="welcome-message">
-            A ministry built on faith, worship,
-            fellowship, and the journey of walking
-            in purpose. Whether joining us in person
-            or online, there is a place here to grow,
-            worship, and continue forward in faith.
-          </p>
-
-          <div className="welcome-actions">
-            <button
-              type="button"
-              className="welcome-button welcome-button-secondary journey-replay-button"
-              onClick={startJourney}
-            >
-              Play the Journey
-            </button>
-
-            <a
-              href="#live"
-              className="welcome-button welcome-button-primary"
-              onClick={(event) => {
-                event.preventDefault();
-                goToLiveSection();
-              }}
-            >
-              Watch Live
-            </a>
-
-            <a
-              href="#events"
-              className="welcome-button welcome-button-secondary"
-            >
-              Upcoming Events
-            </a>
-          </div>
-
-          <div className="welcome-scroll">
-            <span>Continue Exploring</span>
-
-            <span
-              className="welcome-arrow"
-              aria-hidden="true"
-            >
-              ⌄
-            </span>
-          </div>
-        </div>
+        {/* =====================================
+            JOURNEY-ONLY STYLES
+            ===================================== */}
 
         <style jsx>{`
           .journey-entry-screen {
             position: absolute;
             inset: 0;
             z-index: 10000;
+
             display: grid;
             place-items: center;
+
             padding: 28px;
+
             pointer-events: auto;
             text-align: center;
+
             background:
               radial-gradient(
                 circle at 50% 38%,
@@ -565,147 +448,185 @@ export default function JourneyExperience() {
 
           .journey-entry-content {
             width: min(760px, 94vw);
-            padding: clamp(32px, 6vw, 64px);
-            border: 1px solid
+
+            padding:
+              clamp(32px, 6vw, 64px);
+
+            border:
+              1px solid
               rgba(232, 207, 118, 0.38);
+
             border-radius: 30px;
-            background: rgba(8, 8, 8, 0.5);
-            box-shadow: 0 28px 80px
+
+            background:
+              rgba(8, 8, 8, 0.5);
+
+            box-shadow:
+              0 28px 80px
               rgba(0, 0, 0, 0.5);
+
             backdrop-filter: blur(10px);
           }
 
           .journey-entry-eyebrow {
             margin: 0 0 14px;
+
             color: #e8cf76;
+
             font-size: 0.76rem;
             font-weight: 700;
+
             letter-spacing: 0.28em;
             text-transform: uppercase;
           }
 
           .journey-entry-content h1 {
             margin: 0;
+
             color: #f8f3e7;
+
             font-family:
               Georgia,
               "Times New Roman",
               serif;
-            font-size: clamp(
-              2.5rem,
-              6vw,
-              5.4rem
-            );
+
+            font-size:
+              clamp(
+                2.5rem,
+                6vw,
+                5.4rem
+              );
+
             font-weight: 500;
             line-height: 1.02;
           }
 
           .journey-entry-content
-            > p:not(.journey-entry-eyebrow) {
-            width: min(620px, 100%);
-            margin: 22px auto 0;
-            color: rgba(248, 243, 231, 0.82);
-            font-size: clamp(
-              1rem,
-              1.7vw,
-              1.18rem
-            );
+            > p:not(
+              .journey-entry-eyebrow
+            ) {
+            width:
+              min(620px, 100%);
+
+            margin:
+              22px auto 0;
+
+            color:
+              rgba(
+                248,
+                243,
+                231,
+                0.82
+              );
+
+            font-size:
+              clamp(
+                1rem,
+                1.7vw,
+                1.18rem
+              );
+
             line-height: 1.65;
           }
 
           .journey-enter-button {
             position: relative;
             z-index: 10001;
+
             min-height: 54px;
+
             margin-top: 30px;
-            padding: 0 28px;
-            display: inline-flex;
+
+            padding:
+              0 28px;
+
+            display:
+              inline-flex;
+
             align-items: center;
             justify-content: center;
+
             gap: 14px;
-            border: 1px solid
-              rgba(232, 207, 118, 0.85);
+
+            border:
+              1px solid
+              rgba(
+                232,
+                207,
+                118,
+                0.85
+              );
+
             border-radius: 999px;
+
             color: #1a1207;
-            background: linear-gradient(
-              135deg,
-              #f1d985,
-              #cda83c
-            );
-            box-shadow: 0 12px 34px
+
+            background:
+              linear-gradient(
+                135deg,
+                #f1d985,
+                #cda83c
+              );
+
+            box-shadow:
+              0 12px 34px
               rgba(0, 0, 0, 0.34);
+
             font: inherit;
+
             font-size: 0.78rem;
             font-weight: 800;
+
             letter-spacing: 0.14em;
             text-transform: uppercase;
+
             cursor: pointer;
             pointer-events: auto;
-            touch-action: manipulation;
+
+            touch-action:
+              manipulation;
           }
 
           .journey-enter-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 42px
-              rgba(212, 175, 55, 0.24);
+            transform:
+              translateY(-2px);
+
+            box-shadow:
+              0 16px 42px
+              rgba(
+                212,
+                175,
+                55,
+                0.24
+              );
           }
 
           .journey-welcome-shortcut {
             margin-left: 12px;
-            color: #f8f3e7;
-            background: rgba(8, 8, 8, 0.6);
-          }
 
-          .journey-replay-button {
-            font-family: inherit;
-            cursor: pointer;
+            color: #f8f3e7;
+
+            background:
+              rgba(8, 8, 8, 0.6);
           }
 
           .journey-sequenced-layer {
             transition:
-              opacity 1.25s ease-in-out,
+              opacity 1.25s
+                ease-in-out,
               transform 9s linear;
-            will-change: opacity, transform;
+
+            will-change:
+              opacity,
+              transform;
           }
 
           .journey-sequenced-copy {
             transition:
-              opacity 1.35s ease 0.28s,
-              transform 1.35s ease 0.28s;
-          }
-
-          .procession-spirit {
-            animation-name: journeySpiritWalk;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
-          }
-
-          @keyframes journeySpiritWalk {
-            0% {
-              bottom: -30%;
-              opacity: 0;
-              transform:
-                translateX(-50%)
-                translateY(0)
-                scale(0.86);
-            }
-
-            12% {
-              opacity: 0.82;
-            }
-
-            78% {
-              opacity: 0.72;
-            }
-
-            100% {
-              bottom: -30%;
-              opacity: 0;
-              transform:
-                translateX(-50%)
-                translateY(-88vh)
-                scale(0.12);
-            }
+              opacity 1.35s
+                ease 0.28s,
+              transform 1.35s
+                ease 0.28s;
           }
 
           @media (max-width: 600px) {
@@ -714,11 +635,16 @@ export default function JourneyExperience() {
             }
 
             .journey-entry-content {
-              padding: 34px 22px;
+              padding:
+                34px 22px;
             }
 
             .journey-enter-button {
-              width: min(300px, 100%);
+              width:
+                min(
+                  300px,
+                  100%
+                );
             }
 
             .journey-welcome-shortcut {
