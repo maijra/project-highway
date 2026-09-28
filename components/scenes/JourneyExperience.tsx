@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 
 type JourneyScene = {
   image: string;
@@ -123,18 +122,6 @@ const JOURNEY_SCENES: JourneyScene[] = [
   },
 ];
 
-const walkers = Array.from(
-  { length: 28 },
-  (_, index) => ({
-    id: index,
-    imageNumber: (index % 3) + 1,
-    left: 30 + ((index * 7) % 39),
-    duration: 64 + (index % 7) * 4,
-    delay: -(index * 3.1),
-    scale: 0.78 + (index % 5) * 0.05,
-  })
-);
-
 export default function JourneyExperience() {
   const stageRef = useRef<HTMLDivElement>(null);
 
@@ -144,19 +131,21 @@ export default function JourneyExperience() {
   const [activeScene, setActiveScene] =
     useState(-1);
 
-  const [showWelcome, setShowWelcome] =
-    useState(false);
-
+  /*
+   * The Journey no longer creates its own Welcome screen.
+   * It now hands off directly to the real #welcome section
+   * rendered by app/page.tsx.
+   */
   const goToWelcome = useCallback(() => {
-    setJourneyStarted(true);
     setActiveScene(-1);
-    setShowWelcome(true);
 
     requestAnimationFrame(() => {
-      stageRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      document
+        .getElementById("welcome")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
     });
   }, []);
 
@@ -165,11 +154,21 @@ export default function JourneyExperience() {
       new Event("project-highway:start-music")
     );
 
-    setShowWelcome(false);
     setActiveScene(0);
     setJourneyStarted(true);
+
+    requestAnimationFrame(() => {
+      stageRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   };
 
+  /*
+   * Navbar Home / Welcome requests still work,
+   * but now they go to the ONE real Welcome section.
+   */
   useEffect(() => {
     const handleWelcomeRequest = () => {
       goToWelcome();
@@ -188,12 +187,11 @@ export default function JourneyExperience() {
     };
   }, [goToWelcome]);
 
+  /*
+   * Automatically advance through every Journey scene.
+   */
   useEffect(() => {
-    if (
-      !journeyStarted ||
-      showWelcome ||
-      activeScene < 0
-    ) {
+    if (!journeyStarted || activeScene < 0) {
       return;
     }
 
@@ -227,17 +225,7 @@ export default function JourneyExperience() {
     activeScene,
     goToWelcome,
     journeyStarted,
-    showWelcome,
   ]);
-
-  const goToLiveSection = () => {
-    document
-      .getElementById("live")
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-  };
 
   return (
     <section
@@ -271,6 +259,7 @@ export default function JourneyExperience() {
                 <span>Enter The Journey</span>
                 <span aria-hidden="true">→</span>
               </button>
+
               <button
                 type="button"
                 className="journey-enter-button journey-welcome-shortcut"
@@ -282,12 +271,12 @@ export default function JourneyExperience() {
           </div>
         )}
 
-        {journeyStarted && !showWelcome && (
+        {journeyStarted && activeScene >= 0 && (
           <button
             type="button"
             className="journey-skip-button"
             onClick={goToWelcome}
-            aria-label="Skip the journey and go to the welcome screen"
+            aria-label="Skip the journey and go to the welcome section"
           >
             <span>Skip Journey</span>
 
@@ -318,49 +307,8 @@ export default function JourneyExperience() {
           )
         )}
 
-        <div
-          className="journey-layer journey-welcome-transition journey-sequenced-layer"
-          style={{
-            backgroundImage:
-              "url('/scenery/welcome-highway-clean.png')",
-            opacity: showWelcome ? 1 : 0,
-            transform: showWelcome
-              ? "scale(1.04)"
-              : "scale(1.01)",
-          }}
-        />
-
         <div className="journey-overlay" />
         <div className="journey-glow" />
-
-        <div
-          className="journey-spirit-layer"
-          aria-hidden="true"
-          style={{
-            opacity: showWelcome ? 0.72 : 0,
-            transition: "opacity 2.4s ease",
-          }}
-        >
-          {walkers.map((walker) => (
-            <Image
-              key={walker.id}
-              src={`/scenery/spirit-walker-${walker.imageNumber}.png`}
-              alt=""
-              width={225}
-              height={360}
-              className="procession-spirit"
-              style={{
-                left: `${walker.left}%`,
-                animationDuration:
-                  `${walker.duration}s`,
-                animationDelay:
-                  `${walker.delay}s`,
-                transform:
-                  `translateX(-50%) scale(${walker.scale})`,
-              }}
-            />
-          ))}
-        </div>
 
         {JOURNEY_SCENES.map(
           (scene, index) => {
@@ -406,83 +354,6 @@ export default function JourneyExperience() {
             );
           }
         )}
-
-        <div
-          className="journey-welcome-copy"
-          style={{
-            opacity: showWelcome ? 1 : 0,
-            transform: showWelcome
-              ? "translateY(0)"
-              : "translateY(34px)",
-            transition:
-              "opacity 1.8s ease 0.45s, transform 1.8s ease 0.45s",
-          }}
-        >
-          <p className="welcome-eyebrow">
-            Welcome To
-          </p>
-
-          <h2 className="welcome-title">
-            Isaiah 35:8 Ministries
-          </h2>
-
-          <p className="welcome-scripture">
-            “And a highway shall be there, and a
-            way, and it shall be called The way
-            of holiness.”
-          </p>
-
-          <p className="welcome-reference">
-            Isaiah 35:8
-          </p>
-
-          <p className="welcome-message">
-            A ministry built on faith, worship,
-            fellowship, and the journey of walking
-            in purpose. Whether joining us in person
-            or online, there is a place here to grow,
-            worship, and continue forward in faith.
-          </p>
-
-          <div className="welcome-actions">
-            <button
-              type="button"
-              className="welcome-button welcome-button-secondary journey-replay-button"
-              onClick={startJourney}
-            >
-              Play the Journey
-            </button>
-
-            <a
-              href="#live"
-              className="welcome-button welcome-button-primary"
-              onClick={(event) => {
-                event.preventDefault();
-                goToLiveSection();
-              }}
-            >
-              Watch Live
-            </a>
-
-            <a
-              href="#events"
-              className="welcome-button welcome-button-secondary"
-            >
-              Upcoming Events
-            </a>
-          </div>
-
-          <div className="welcome-scroll">
-            <span>Continue Exploring</span>
-
-            <span
-              className="welcome-arrow"
-              aria-hidden="true"
-            >
-              ⌄
-            </span>
-          </div>
-        </div>
 
         <style jsx>{`
           .journey-entry-screen {
@@ -602,11 +473,6 @@ export default function JourneyExperience() {
             background: rgba(8, 8, 8, 0.6);
           }
 
-          .journey-replay-button {
-            font-family: inherit;
-            cursor: pointer;
-          }
-
           .journey-sequenced-layer {
             transition:
               opacity 1.8s ease,
@@ -617,40 +483,6 @@ export default function JourneyExperience() {
             transition:
               opacity 1.35s ease 0.28s,
               transform 1.35s ease 0.28s;
-          }
-
-          .procession-spirit {
-            animation-name: journeySpiritWalk;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
-          }
-
-          @keyframes journeySpiritWalk {
-            0% {
-              bottom: -30%;
-              opacity: 0;
-              transform:
-                translateX(-50%)
-                translateY(0)
-                scale(0.86);
-            }
-
-            12% {
-              opacity: 0.82;
-            }
-
-            78% {
-              opacity: 0.72;
-            }
-
-            100% {
-              bottom: -30%;
-              opacity: 0;
-              transform:
-                translateX(-50%)
-                translateY(-88vh)
-                scale(0.12);
-            }
           }
 
           @media (max-width: 600px) {
