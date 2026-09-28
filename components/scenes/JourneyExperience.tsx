@@ -40,14 +40,17 @@ const JOURNEY_SCENES: JourneyScene[] = [
     title: "You were never meant to walk alone.",
     prompt: "Continue Walking",
   },
+
+  // Bridge 3
   {
-    image: "/scenery/bridge-3a.png",
+    image: "/scenery/Bridge-3a.png",
     duration: 2000,
   },
   {
-    image: "/scenery/bridge-3b.png",
+    image: "/scenery/Bridge-3b.png",
     duration: 2000,
   },
+
   {
     image: "/scenery/blooms-desert.png",
     duration: 7500,
@@ -56,14 +59,17 @@ const JOURNEY_SCENES: JourneyScene[] = [
     subtitle: "What was once dry begins to live again.",
     prompt: "Keep Walking",
   },
+
+  // Bridge 4
   {
-    image: "/scenery/bridge-4a.png",
+    image: "/scenery/Bridge-4a.png",
     duration: 2000,
   },
   {
-    image: "/scenery/bridge-4b.png",
+    image: "/scenery/Bridge-4b.png",
     duration: 2000,
   },
+
   {
     image: "/scenery/streams.png",
     duration: 7500,
@@ -72,14 +78,17 @@ const JOURNEY_SCENES: JourneyScene[] = [
     subtitle: "Streams begin to flow through the land.",
     prompt: "Follow The Way",
   },
+
+  // Bridge 5
   {
-    image: "/scenery/bridge-5a.png",
+    image: "/scenery/Bridge-5a.png",
     duration: 2000,
   },
   {
-    image: "/scenery/bridge-5b.png",
+    image: "/scenery/Bridge-5b.png",
     duration: 2000,
   },
+
   {
     image: "/scenery/worship.png",
     duration: 7500,
@@ -88,14 +97,17 @@ const JOURNEY_SCENES: JourneyScene[] = [
     subtitle: "Worship fills the journey.",
     prompt: "Keep Walking",
   },
+
+  // Bridge 6
   {
-    image: "/scenery/bridge-6a.png",
+    image: "/scenery/Bridge-6a.png",
     duration: 2000,
   },
   {
-    image: "/scenery/bridge-6b.png",
+    image: "/scenery/Bridge-6b.png",
     duration: 2000,
   },
+
   {
     image: "/scenery/church.png",
     duration: 7500,
@@ -104,14 +116,17 @@ const JOURNEY_SCENES: JourneyScene[] = [
     subtitle: "A place of worship appears along the way.",
     prompt: "Continue Forward",
   },
+
+  // Bridge 7
   {
-    image: "/scenery/bridge-7a.png",
+    image: "/scenery/Bridge-7a.png",
     duration: 2000,
   },
   {
-    image: "/scenery/bridge-7b.png",
+    image: "/scenery/Bridge-7b.png",
     duration: 2000,
   },
+
   {
     image: "/scenery/beyond.png",
     duration: 7500,
@@ -168,6 +183,13 @@ export default function JourneyExperience() {
     setShowWelcome(false);
     setActiveScene(0);
     setJourneyStarted(true);
+
+    requestAnimationFrame(() => {
+      stageRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   };
 
   useEffect(() => {
@@ -271,6 +293,7 @@ export default function JourneyExperience() {
                 <span>Enter The Journey</span>
                 <span aria-hidden="true">→</span>
               </button>
+
               <button
                 type="button"
                 className="journey-enter-button journey-welcome-shortcut"
