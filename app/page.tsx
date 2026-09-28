@@ -58,10 +58,17 @@ export default function Home() {
           </p>
 
           <div className="welcome-actions">
+            <a
+              href="#home"
+              className="welcome-button welcome-button-secondary"
+            >
+              Play the Journey
+            </a>
+          
             <a href="#live" className="welcome-button welcome-button-primary">
               Watch Live
             </a>
-
+          
             <a
               href="#events"
               className="welcome-button welcome-button-secondary"
