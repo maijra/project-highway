@@ -153,10 +153,10 @@ const walkers = Array.from(
 export default function JourneyExperience() {
   const stageRef = useRef<HTMLDivElement>(null);
 
-  const [journeyStarted, setJourneyStarted] = useState(true);
+  const [journeyStarted, setJourneyStarted] = useState(false);
   const [activeScene, setActiveScene] = useState(-1);
-  const [showWelcome, setShowWelcome] = useState(true);
-
+  const [showWelcome, setShowWelcome] = useState(false);
+  
   const goToWelcome = useCallback(() => {
     setJourneyStarted(true);
     setActiveScene(-1);
