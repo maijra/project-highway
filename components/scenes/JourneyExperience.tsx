@@ -324,18 +324,24 @@ export default function JourneyExperience() {
         )}
 
         {JOURNEY_SCENES.map((scene, index) => {
-          const isActive = activeScene === index;
+          const isActive =
+            activeScene === index;
+
           const isPrevious =
-            activeScene > 0 && index === activeScene - 1;
-        
+            activeScene > 0 &&
+            index === activeScene - 1;
+
           return (
             <div
               key={scene.image}
               className="journey-layer journey-sequenced-layer"
               style={{
-                backgroundImage: `url('${scene.image}')`,
+                backgroundImage:
+                  `url('${scene.image}')`,
                 opacity:
-                  isActive || isPrevious ? 1 : 0,
+                  isActive || isPrevious
+                    ? 1
+                    : 0,
                 zIndex: isActive
                   ? 2
                   : isPrevious
@@ -399,15 +405,23 @@ export default function JourneyExperience() {
               return null;
             }
 
+            const showSceneText =
+              !showWelcome &&
+              activeScene === index;
+
             return (
               <div
                 key={`${scene.image}-copy`}
                 className="journey-text journey-sequenced-copy"
                 style={{
                   opacity:
-                    activeScene === index ? 1 : 0,
+                    showSceneText ? 1 : 0,
+                  visibility:
+                    showSceneText
+                      ? "visible"
+                      : "hidden",
                   transform:
-                    activeScene === index
+                    showSceneText
                       ? "translateY(0)"
                       : "translateY(24px)",
                 }}
