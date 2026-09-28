@@ -323,23 +323,31 @@ export default function JourneyExperience() {
           </button>
         )}
 
-        {JOURNEY_SCENES.map(
-          (scene, index) => (
+        {JOURNEY_SCENES.map((scene, index) => {
+          const isActive = activeScene === index;
+          const isPrevious =
+            activeScene > 0 && index === activeScene - 1;
+        
+          return (
             <div
               key={scene.image}
               className="journey-layer journey-sequenced-layer"
               style={{
                 backgroundImage: `url('${scene.image}')`,
                 opacity:
-                  activeScene === index ? 1 : 0,
-                transform:
-                  activeScene === index
-                    ? "scale(1.045)"
-                    : "scale(1.015)",
+                  isActive || isPrevious ? 1 : 0,
+                zIndex: isActive
+                  ? 2
+                  : isPrevious
+                    ? 1
+                    : 0,
+                transform: isActive
+                  ? "scale(1.045)"
+                  : "scale(1.015)",
               }}
             />
-          )
-        )}
+          );
+        })}
 
         <div
           className="journey-layer journey-welcome-transition journey-sequenced-layer"
