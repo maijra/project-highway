@@ -1064,6 +1064,98 @@ section {
     none;
 }
 
+/* =========================================
+   PERMANENT WELCOME SECTION
+   ========================================= */
+
+.welcome-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 100px 28px;
+
+  background: #080808;
+  color: var(--brand-ivory);
+
+  isolation: isolate;
+}
+
+.welcome-section-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  background-image:
+    url("/scenery/welcome-highway-clean.png");
+
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.welcome-section-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(255, 240, 198, 0.08) 0%,
+      rgba(0, 0, 0, 0.08) 42%,
+      rgba(0, 0, 0, 0.42) 100%
+    );
+}
+
+.welcome-spirit-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.welcome-spirit {
+  position: absolute;
+  bottom: -30px;
+
+  width: clamp(90px, 10vw, 160px);
+  height: auto;
+
+  opacity: 0.28;
+
+  filter:
+    brightness(1.12)
+    drop-shadow(0 0 18px rgba(255, 225, 150, 0.48));
+}
+
+.welcome-spirit:nth-child(odd) {
+  left: calc(var(--spirit-position, 5%) + 5%);
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 10;
+
+  width: min(950px, 100%);
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
 
 /* =========================================
    LEADERSHIP SECTION
